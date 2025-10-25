@@ -1,9 +1,53 @@
 <script>
-    export default { 
+import axios from 'axios';
 
-       // add code here
+export default { 
+    data() {
+        return {
+            moods: ["Happy", "Sad", "Angry"],
+            subject: "",
+            entry: "",
+            mood: "",
+            outputMsg: "",
+        }
+    },
+    computed: {
+        baseUrl() {
+            if (window.location.hostname === 'localhost')
+                return 'http://localhost:3000' 
+            else {
+                const codespace_host = window.location.hostname.replace('5173', '3000')
+                return `https://${codespace_host}`;
+            }
+        }
+    },
+    methods: {
+        addPost() {
+            // Validate inputs
+            if (!this.subject || !this.entry || !this.mood) {
+                this.outputMsg = "Please fill in all fields";
+                return;
+            }
 
+            axios.get(`${this.baseUrl}/addPost`, {
+                params: {
+                    'subject': this.subject,
+                    'entry': this.entry,
+                    'mood': this.mood,
+                }
+            }).then(response => {
+                this.outputMsg = response.data.message;
+                // Optional: Clear form after successful submission
+                // this.subject = "";
+                // this.entry = "";
+                // this.mood = "";
+            }).catch(error => { 
+                console.log(error);
+                this.outputMsg = "Error: " + error.message;
+            })
+        }
     }
+}
 </script>
 
 <template>
@@ -18,15 +62,19 @@
         <br>
 
         Mood:
-        <!-- TODO: Build a dropdown list here for selecting the mood -->
-
+        <select v-model="mood">
+            <option value="">-- Select a mood --</option>
+            <option v-for="moodOption in moods" :key="moodOption" :value="moodOption">
+                {{ moodOption }}
+            </option>
+        </select>
         <br>
 
         <br>
-        <button>Submit New Post</button>
-
-        <hr> Click  <a><router-link to="/ViewPosts/">here</router-link></a>  to return to Main Page
-       
+        <button @click="addPost()">Submit New Post</button>
+        <br>
+        {{ outputMsg }}
+        <hr> 
+        Click <router-link to="/ViewPosts/">here</router-link> to return to Main Page
     </div>
 </template>
-
